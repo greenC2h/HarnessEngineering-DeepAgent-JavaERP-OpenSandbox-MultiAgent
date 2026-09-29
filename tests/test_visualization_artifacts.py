@@ -16,7 +16,7 @@ class VisualizationArtifactTests(unittest.IsolatedAsyncioTestCase):
     """验证图表文件过期后不会继续返回旧资源。"""
 
     def test_resolves_the_project_runtime_directory_after_module_move(self) -> None:
-        """资源目录必须仍位于 MyAgent/runtime，而不是 services 的父目录。"""
+        """资源目录必须仍位于 MotoParts Agent ERP/runtime，而不是 services 的父目录。"""
         self.assertEqual(
             visualization_artifacts.PROJECT_DIR,
             Path(__file__).resolve().parents[1],

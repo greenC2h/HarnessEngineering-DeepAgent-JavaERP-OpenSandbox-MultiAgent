@@ -1,4 +1,4 @@
-"""启动 MyAgent 的 Java、MCP、FastAPI 和 Vue 服务。"""
+"""启动 MotoParts Agent ERP 的 Java、MCP、FastAPI 和 Vue 服务。"""
 
 from __future__ import annotations
 

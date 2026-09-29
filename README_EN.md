@@ -1,4 +1,4 @@
-# MyAgent
+# MotoParts Agent ERP
 
 > A full-stack agent application for motorcycle-parts procurement, turning natural-language requests into procurement queries, controlled order operations, data analysis, and visual reports.
 
@@ -12,7 +12,7 @@ Languages: [中文](README.md) | **English**
 
 ## ✨ Overview
 
-MyAgent connects a Vue frontend, FastAPI APIs, DeepAgents/LangGraph workflows, a Java ERP procurement backend, and MCP tools into one local development system.
+MotoParts Agent ERP connects a Vue frontend, FastAPI APIs, DeepAgents/LangGraph workflows, a Java ERP procurement backend, and MCP tools into one local development system.
 
 After signing in, users can describe procurement tasks in the chat interface. The main agent decides whether to answer directly, call public tools, delegate to the synchronous procurement-order agent, or submit an asynchronous procurement-analysis job. Order writes pause for human approval before execution, while charts and reports are returned as resource links that the frontend can open or download.
 
@@ -57,7 +57,7 @@ OpenSandbox is not started or stopped by `start_web.py` and must be prepared sep
 ## 📁 Project Layout
 
 ```text
-MyAgent/
+MotoParts-AgentERP/
 ├── data/                    # MySQL initialization scripts
 ├── doc/                     # Architecture and implementation documentation
 ├── frontend/                # Vue 3 + Vite frontend

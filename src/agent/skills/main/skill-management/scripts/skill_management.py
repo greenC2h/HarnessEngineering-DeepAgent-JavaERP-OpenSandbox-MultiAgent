@@ -257,7 +257,7 @@ def _download_skill(skills_root: Path, skill_url: str) -> dict[str, Any]:
         with tempfile.TemporaryDirectory(dir=main_directory) as temporary_name:
             temporary_directory = Path(temporary_name)
             archive_path = temporary_directory / "skill.zip"
-            request = urllib.request.Request(archive_url, headers={"User-Agent": "MyAgent-skill-installer"})
+            request = urllib.request.Request(archive_url, headers={"User-Agent": "MotoParts-AgentERP-skill-installer"})
             with urllib.request.urlopen(request, timeout=30) as response:
                 content = response.read(32 * 1024 * 1024 + 1)
                 if len(content) > 32 * 1024 * 1024:

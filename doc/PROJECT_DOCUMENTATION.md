@@ -88,7 +88,7 @@ flowchart LR
 
 Agent 文件操作和命令执行依赖 OpenSandbox。服务端需要单独准备，并确保项目进程可访问配置的管理 API；`start_web.py` 不代为启动或停止它。连接配置、镜像及两类超时统一见 3.6。未配置 `OPEN_SANDBOX_API_KEY` 时，主服务仍可启动并提供页面、历史等非 Agent 接口，但首次需要沙箱的 Agent 请求会明确失败；主服务和异步 Agent Protocol 要执行沙箱任务时都需要有效密钥。
 
-下面保留本机 WSL 部署的操作示例，不表示项目要求所有环境都使用 WSL。服务端安装目录、虚拟环境和配置文件位置应以实际部署为准；这个服务端环境不替代 MyAgent 的 `myagent` Python 环境。
+下面保留本机 WSL 部署的操作示例，不表示项目要求所有环境都使用 WSL。服务端安装目录、虚拟环境和配置文件位置应以实际部署为准；这个服务端环境不替代 MotoParts Agent ERP 的 `myagent` Python 环境。
 
 在 PowerShell 中进入 WSL：
 
