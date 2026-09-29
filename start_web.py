@@ -208,7 +208,7 @@ def java_backend_command() -> list[str]:
         "-f",
         str(JAVA_BACKEND_DIR / "pom.xml"),
         "spring-boot:run",
-        f"-Dspring-boot.run.arguments=--server.address={JAVA_BACKEND_HOST},--server.port={JAVA_BACKEND_PORT}",
+        f"-Dspring-boot.run.arguments=--server.address={JAVA_BACKEND_HOST} --server.port={JAVA_BACKEND_PORT}",
     ]
 
 

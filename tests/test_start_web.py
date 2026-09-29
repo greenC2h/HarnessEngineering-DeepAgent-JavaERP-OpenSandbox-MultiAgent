@@ -79,7 +79,10 @@ class EnsurePortAvailableTests(unittest.TestCase):
         self.assertIn("spring-boot:run", command)
         self.assertIn("java-backend", command_text)
         self.assertIn("pom.xml", command_text)
-        self.assertIn("--server.port=18080", command_text)
+        self.assertIn(
+            "-Dspring-boot.run.arguments=--server.address=127.0.0.1 --server.port=18080",
+            command,
+        )
         self.assertEqual(
             build_python_env()["JAVA_API_BASE_URL"],
             "http://127.0.0.1:18080/api",
