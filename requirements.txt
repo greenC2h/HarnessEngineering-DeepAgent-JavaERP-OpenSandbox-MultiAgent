@@ -1,0 +1,28 @@
+# MotoParts Agent ERP Python 运行时与测试依赖。
+# 使用项目根目录的 uv 环境安装：
+# uv pip install --python .\myagent\Scripts\python.exe -r requirements.txt
+
+# Agent 编排与 LangGraph 运行时
+deepagents==0.7.13
+langchain==1.4.0
+langchain-core==1.6.2
+langchain-deepseek==1.1.0
+langchain-mcp-adapters==0.3.2
+langgraph==1.2.11
+langgraph-checkpoint-postgres==3.1.2
+langgraph-cli[inmem]==0.4.31
+langgraph-sdk==0.4.4
+
+# Web API、MCP 和 HTTP 客户端
+fastapi==0.141.1
+fastmcp==3.2.4
+httpx==0.28.1
+uvicorn==0.53.0
+
+# 数据库、配置和模型
+opensandbox==0.1.16
+psycopg[binary,pool]==3.3.5
+pymysql==1.1.1
+pydantic==2.13.5
+python-dotenv==1.2.3
+PyYAML==6.0.3

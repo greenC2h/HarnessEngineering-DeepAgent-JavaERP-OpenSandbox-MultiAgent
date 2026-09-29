@@ -84,14 +84,20 @@ MotoParts-AgentERP/
 
 | 依赖 | 用途 |
 | --- | --- |
-| 项目 `myagent` Python 环境 | 运行 FastAPI、MCP 和 Agent Protocol；启动器强制使用该环境 |
+| `uv` 与项目 `myagent` Python 环境 | 按 `requirements.txt` 安装并运行 FastAPI、MCP 和 Agent Protocol |
 | JDK 17+ 与 Maven | 编译和启动 `java-backend/` |
 | Node.js 与 npm | 安装前端依赖并运行 Vite |
 | MySQL | 认证数据和 Java ERP 业务数据库 |
 | PostgreSQL | LangGraph Store、Checkpointer、会话和长期记忆 |
 | OpenSandbox | Agent 的文件和命令执行；需要单独部署 |
 
-项目当前没有统一的 `requirements.txt` 或 `pyproject.toml`，Python 依赖应安装并验证在根目录 `myagent` 环境中。
+Python 直接依赖已记录在根目录 `requirements.txt`。在项目根目录执行：
+
+```powershell
+uv pip install --python .\myagent\Scripts\python.exe -r requirements.txt
+```
+
+安装后，启动器仍会强制使用根目录的 `myagent` Python 环境。
 
 ### 2. 配置环境变量
 

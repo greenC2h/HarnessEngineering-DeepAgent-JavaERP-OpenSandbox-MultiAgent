@@ -210,7 +210,7 @@ Vite 的 API 代理读取后端端口，但目标主机固定为 `127.0.0.1`；�
 
 **依赖与验证**
 
-- 后端使用项目已有的 `myagent` 虚拟环境；仓库根目录当前没有统一的 `requirements.txt`、`requirements-*.txt`、`pyproject.toml` 或其他 Python 安装清单，因此本文不虚构一条完整的依赖安装命令。
+- 后端使用项目已有的 `myagent` 虚拟环境；Python 直接依赖统一记录在根目录 `requirements.txt`。在项目根目录执行 `uv pip install --python .\myagent\Scripts\python.exe -r requirements.txt` 可安装或校验运行环境中的依赖。
 - 前端依赖由 `frontend/package.json` 和 `frontend/package-lock.json` 描述。首次运行前可在 `frontend/` 目录执行 `npm install`，再使用统一启动器；可执行 `npm test` 运行 `frontend/tests/*.test.js` 的 Node 原生测试，并用 `npm run build` 验证构建。
 - Java 后端由 `java-backend/pom.xml` 描述，需要 JDK 17 或更高版本以及 Maven；可通过 `MYAGENT_JAVA_MAVEN_COMMAND` 指定 Maven 可执行文件。
 - 完整运行还需要 PostgreSQL、Java 后端依赖的 MySQL、异步 Agent Protocol、OpenSandbox 和模型服务，具体地址、密钥和模型配置以当前环境变量及根目录 `.env` 为准；OpenSandbox 客户端配置见 3.6。

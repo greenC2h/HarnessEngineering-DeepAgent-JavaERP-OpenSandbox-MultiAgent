@@ -84,14 +84,20 @@ Prepare the following services and tools:
 
 | Dependency | Purpose |
 | --- | --- |
-| The project `myagent` Python environment | Runs FastAPI, MCP, and Agent Protocol; the launcher requires this environment |
+| `uv` and the project `myagent` Python environment | Install from `requirements.txt` and run FastAPI, MCP, and Agent Protocol |
 | JDK 17+ and Maven | Build and run `java-backend/` |
 | Node.js and npm | Install frontend dependencies and run Vite |
 | MySQL | Authentication and Java ERP business data |
 | PostgreSQL | LangGraph Store, Checkpointer, sessions, and long-term memory |
 | OpenSandbox | Agent file and shell execution; deployed separately |
 
-The repository currently does not provide a single `requirements.txt` or `pyproject.toml`. Python dependencies should be installed and verified in the root `myagent` environment.
+Direct Python dependencies are recorded in the root `requirements.txt`. From the repository root, run:
+
+```powershell
+uv pip install --python .\myagent\Scripts\python.exe -r requirements.txt
+```
+
+The launcher continues to use the root `myagent` Python environment.
 
 ### 2. Configure environment variables
 
