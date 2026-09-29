@@ -1,0 +1,45 @@
+# 本地密钥和环境配置
+.env
+.env.*
+!.env.example
+
+# Python 环境、缓存和测试产物
+__pycache__/
+*.py[cod]
+*.pyd
+.venv/
+venv/
+env/
+myagent/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# JavaScript 依赖和构建产物
+frontend/node_modules/
+frontend/dist/
+.npm-cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 应用运行状态、临时文件和日志
+runtime/
+.langgraph_api/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# 编辑器和操作系统文件
+.claude/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 仅供本地保留的旧报告备份
+readme.backup.md

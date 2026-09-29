@@ -1,0 +1,8 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "dependencies": ["."],
+  "graphs": {
+    "procurement_analyst_async": "./src/agent/subagents/async_entry.py:procurement_analyst_agent"
+  },
+  "env": ".env"
+}
