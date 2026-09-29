@@ -69,6 +69,7 @@ MotoParts-AgentERP/
 │   ├── mcp_server/          # Java ERP MCP 适配服务
 │   └── services/            # artifact 和运行时资源服务
 ├── tests/                   # Python 测试
+├── requirements.txt        # Python 运行时与测试依赖
 ├── .env.example             # 环境变量模板
 ├── langgraph.json           # 异步 Agent Protocol 图配置
 └── start_web.py             # 本地统一启动器
