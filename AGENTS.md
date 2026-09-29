@@ -2,7 +2,7 @@
 
 ## 适用范围
 
-本规则适用于 `C:\Users\25144\Desktop\MyAgent` 下的代码、测试、配置和文档。`MotorcyclePartsProcurementSystem` 目录不纳入检查、重构或风格统计。
+本规则适用于 `C:\Users\25144\Desktop\MyAgent` 下的代码、测试、配置和文档，包括迁移后的 `java-backend/`。外部源目录 `MotorcyclePartsProcurementSystem` 不纳入检查、重构或风格统计。
 
 用户当前要求、项目已有配置和语言工具链规则优先于本文件。
 
@@ -108,4 +108,4 @@
 - 没有引入重复逻辑、无用代码、调试输出或敏感信息。
 - 相关调用方、配置、文档和测试已经同步。
 - 已运行相关测试或静态检查；无法运行时记录原因和剩余风险。
-- `MotorcyclePartsProcurementSystem` 目录未被读取、修改或纳入检查结果。
+- 外部源目录 `MotorcyclePartsProcurementSystem` 不纳入后续检查结果；迁移到本项目的 `java-backend/` 按本规则管理。

@@ -1,9 +1,10 @@
-"""启动 MyAgent 的 FastAPI 后端和 Vue 开发服务器。"""
+"""启动 MyAgent 的 Java、MCP、FastAPI 和 Vue 服务。"""
 
 from __future__ import annotations
 
 import os
 import signal
+import shutil
 import socket
 import subprocess
 import sys
@@ -18,12 +19,19 @@ from urllib.request import urlopen
 PROJECT_ROOT = Path(__file__).resolve().parent
 SRC_DIR = PROJECT_ROOT / "src"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
+JAVA_BACKEND_DIR = PROJECT_ROOT / "java-backend"
 PYTHON_EXE = PROJECT_ROOT / "myagent" / "Scripts" / "python.exe"
 
 BACKEND_HOST = os.environ.get("MYAGENT_BACKEND_HOST", "127.0.0.1")
 BACKEND_PORT = int(os.environ.get("MYAGENT_BACKEND_PORT", "18000"))
 FRONTEND_HOST = os.environ.get("MYAGENT_FRONTEND_HOST", "127.0.0.1")
 FRONTEND_PORT = int(os.environ.get("MYAGENT_FRONTEND_PORT", "19000"))
+JAVA_BACKEND_HOST = os.environ.get("MYAGENT_JAVA_BACKEND_HOST", "127.0.0.1")
+JAVA_BACKEND_PORT = int(os.environ.get("MYAGENT_JAVA_BACKEND_PORT", "18080"))
+JAVA_MAVEN_COMMAND = os.environ.get(
+    "MYAGENT_JAVA_MAVEN_COMMAND",
+    "mvn.cmd" if os.name == "nt" else "mvn",
+)
 MCP_HOST = os.environ.get("MYAGENT_MCP_HOST", "127.0.0.1")
 MCP_PORT = int(os.environ.get("MYAGENT_MCP_PORT", "18081"))
 MCP_PATH = os.environ.get("MYAGENT_MCP_PATH", "/mcp")
@@ -68,6 +76,10 @@ def build_python_env() -> dict[str, str]:
     environment["MYAGENT_ASYNC_AGENT_PROTOCOL_URL"] = async_agent_url
     # 保留旧变量，避免已有本地启动脚本在迁移期间失效。
     environment["MYAGENT_ASYNC_CHART_URL"] = async_agent_url
+    environment.setdefault(
+        "JAVA_API_BASE_URL",
+        f"http://{JAVA_BACKEND_HOST}:{JAVA_BACKEND_PORT}/api",
+    )
     return environment
 
 
@@ -142,13 +154,12 @@ def ensure_port_available(host: str, port: int, service_name: str) -> None:
         if isinstance(exc, PermissionError) or exc.errno in {13, 10013}:
             raise RuntimeError(
                 f"{service_name} 端口 {host}:{port} 被系统拒绝绑定。"
-                "该端口可能处于 Windows 保留范围，请设置 "
-                "MYAGENT_FRONTEND_PORT 或对应服务的端口变量后重试。"
+                "该端口可能处于 Windows 保留范围，请设置对应服务的端口变量后重试。"
             ) from exc
         raise RuntimeError(
             f"{service_name} 端口 {host}:{port} 已被占用。"
             "请先结束旧的 start_web.py、uvicorn 或 Vite 进程，"
-            "或设置 MYAGENT_BACKEND_PORT / MYAGENT_FRONTEND_PORT 使用其他端口。"
+            "或设置对应服务的端口变量使用其他端口。"
         ) from exc
 
 
@@ -190,6 +201,17 @@ def backend_command() -> list[str]:
     return [str(PYTHON_EXE), "-c", runner]
 
 
+def java_backend_command() -> list[str]:
+    """构建 Java Spring Boot 后端的 Maven 启动命令。"""
+    return [
+        JAVA_MAVEN_COMMAND,
+        "-f",
+        str(JAVA_BACKEND_DIR / "pom.xml"),
+        "spring-boot:run",
+        f"-Dspring-boot.run.arguments=--server.address={JAVA_BACKEND_HOST},--server.port={JAVA_BACKEND_PORT}",
+    ]
+
+
 def mcp_command() -> list[str]:
     """构建 Java ERP MCP 适配服务的启动命令。"""
     return [str(PYTHON_EXE), "-m", "mcp_server.server_main"]
@@ -217,17 +239,28 @@ def async_agent_protocol_command() -> list[str]:
 
 
 def main() -> int:
-    """启动后端和前端，直到收到中断信号。"""
+    """启动 Java、MCP、Python 后端和前端，直到收到中断信号。"""
     if not PYTHON_EXE.exists():
         print(f"Python environment not found: {PYTHON_EXE}", file=sys.stderr)
         return 1
     if not (FRONTEND_DIR / "package.json").exists():
         print(f"Frontend project not found: {FRONTEND_DIR}", file=sys.stderr)
         return 1
+    if not (JAVA_BACKEND_DIR / "pom.xml").exists():
+        print(f"Java backend project not found: {JAVA_BACKEND_DIR}", file=sys.stderr)
+        return 1
+    if shutil.which(JAVA_MAVEN_COMMAND) is None and not Path(JAVA_MAVEN_COMMAND).exists():
+        print(
+            f"Maven command not found: {JAVA_MAVEN_COMMAND}. "
+            "请安装 Maven，或设置 MYAGENT_JAVA_MAVEN_COMMAND。",
+            file=sys.stderr,
+        )
+        return 1
 
     try:
         ensure_port_available(BACKEND_HOST, BACKEND_PORT, "FastAPI")
         ensure_port_available(FRONTEND_HOST, FRONTEND_PORT, "Vue")
+        ensure_port_available(JAVA_BACKEND_HOST, JAVA_BACKEND_PORT, "Java ERP 后端")
         ensure_port_available(MCP_HOST, MCP_PORT, "Java ERP MCP")
         ensure_port_available(ASYNC_AGENT_HOST, ASYNC_AGENT_PORT, "异步子 Agent Protocol")
     except RuntimeError as exc:
@@ -247,6 +280,19 @@ def main() -> int:
         signal.signal(signal.SIGTERM, handle_signal)
 
     try:
+        java_backend = start_process(
+            "Java ERP Backend",
+            java_backend_command(),
+            JAVA_BACKEND_DIR,
+            environment,
+        )
+        processes.append(java_backend)
+        java_backend_url = f"http://{JAVA_BACKEND_HOST}:{JAVA_BACKEND_PORT}/"
+        print(f"Waiting for Java ERP Backend: {java_backend_url}", flush=True)
+        if not wait_for_http(java_backend_url, java_backend, timeout=120):
+            print("Java ERP Backend failed to become ready.", file=sys.stderr)
+            return 1
+
         mcp_server = start_process(
             "Java ERP MCP",
             mcp_command(),

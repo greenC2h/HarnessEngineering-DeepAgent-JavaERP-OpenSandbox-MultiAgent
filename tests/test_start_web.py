@@ -15,6 +15,7 @@ from start_web import (
     async_agent_protocol_command,
     build_python_env,
     ensure_port_available,
+    java_backend_command,
     terminate_processes,
     wait_for_http,
 )
@@ -69,6 +70,20 @@ class EnsurePortAvailableTests(unittest.TestCase):
             "http://127.0.0.1:18082",
         )
         self.assertEqual(build_python_env()["LOG_COLOR"], "false")
+
+    def test_java_backend_command_uses_maven_project_and_configured_port(self) -> None:
+        """Java 后端命令必须从迁移后的 Maven 项目启动并传入服务端口。"""
+        command = java_backend_command()
+        command_text = " ".join(command)
+
+        self.assertIn("spring-boot:run", command)
+        self.assertIn("java-backend", command_text)
+        self.assertIn("pom.xml", command_text)
+        self.assertIn("--server.port=18080", command_text)
+        self.assertEqual(
+            build_python_env()["JAVA_API_BASE_URL"],
+            "http://127.0.0.1:18080/api",
+        )
 
     @unittest.skipUnless(os.name == "nt", "Windows 进程树清理")
     def test_stop_terminates_a_descendant_listener(self) -> None:

@@ -10,7 +10,8 @@
 
 | 模块 | 主要代码 | 主要职责 |
 | --- | --- | --- |
-| 启动与进程编排 | `start_web.py` | 检查环境和端口，启动并停止 FastAPI、Vite、Java ERP MCP 和异步 Agent Protocol。 |
+| 启动与进程编排 | `start_web.py` | 检查环境和端口，启动并停止 Java ERP 后端、FastAPI、Vite、Java ERP MCP 和异步 Agent Protocol。 |
+| Java ERP 后端 | `java-backend/` | 提供摩托车零部件采购 REST API，默认监听 `18080`，由 Java ERP MCP 适配层调用。 |
 | 前端交互 | `frontend/src/` | 提供聊天界面、历史会话、SSE 消费、任务卡片、图表入口和人工审批交互。 |
 | API 编排 | `src/api/` | 提供 FastAPI 路由，处理对话、SSE、历史会话、中断恢复和异步任务查询。 |
 | Agent 编排 | `src/agent/main_agent.py`、`src/agent/subagents/` | 构建主 Agent，并接入默认通用能力、同步采购订单子 Agent 和异步采购分析子 Agent。 |
@@ -34,6 +35,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     START["start_web.py"]
+    START --> JAVA["Java ERP 后端<br/>127.0.0.1:18080"]
     START --> MCP["Java ERP MCP<br/>127.0.0.1:18081/mcp"]
     START --> ASYNC["异步 Agent Protocol<br/>127.0.0.1:18082"]
     START --> API["FastAPI<br/>127.0.0.1:18000"]
@@ -66,11 +68,11 @@ flowchart LR
 
 **模块边界**
 
-- `start_web.py` 只负责本地服务的启动、HTTP 响应探测和退出，不参与业务对话。
+- `start_web.py` 只负责本地服务的启动、HTTP 响应探测和退出，不参与业务对话；Java ERP 后端由它启动，但业务逻辑仍位于 `java-backend/`。
 - 用户请求先进入前端和 FastAPI，再由主 Agent 决定直接回答、调用工具或委派子 Agent。
 - 同步采购订单子 Agent 参与主会话的执行和恢复；默认通用能力由 DeepAgents 框架提供；异步采购分析子 Agent 通过独立 Agent Protocol 运行，完成后将结果写回主会话。
 - PostgreSQL 保存会话索引、长期记忆、沙箱 ID 绑定和 LangGraph checkpoint；图表 HTML 保存在宿主运行时 artifact 目录，checkpoint 只保存资源标识。
-- OpenSandbox 提供按用户复用的文件与命令执行环境；服务启动时默认还会后台预热一个未分配实例。它是独立准备的外部服务，不在统一启动器托管的四个进程之内。MySQL 负责认证用户和登录会话，PostgreSQL 负责 Agent Store、Checkpointer、任务归属和报告元数据。
+- OpenSandbox 提供按用户复用的文件与命令执行环境；服务启动时默认还会后台预热一个未分配实例。它是独立准备的外部服务，不在统一启动器托管的五个进程之内。MySQL 负责认证用户和登录会话，PostgreSQL 负责 Agent Store、Checkpointer、任务归属和报告元数据。
 
 **推荐阅读入口**
 
@@ -137,6 +139,7 @@ http://127.0.0.1:19000/
 | --- | --- | --- |
 | Vue / Vite | `127.0.0.1:19000` | 前端开发服务器 |
 | FastAPI | `127.0.0.1:18000` | 对话、SSE、历史和资源接口 |
+| Java ERP 后端 | `127.0.0.1:18080` | 采购业务 REST API |
 | Java ERP MCP | `127.0.0.1:18081/mcp` | 采购业务 MCP 服务 |
 | 异步 Agent Protocol | `127.0.0.1:18082` | 运行异步子 Agent |
 | OpenSandbox 管理 API | `127.0.0.1:18083` | 独立准备的外部依赖，不由启动器托管 |
@@ -148,26 +151,28 @@ http://127.0.0.1:19000/
 ```mermaid
 flowchart TD
     A["执行 start_web.py"]
-    B["检查 myagent Python 和 frontend/package.json"]
-    C["检查 18000、19000、18081、18082 端口"]
+    B["检查 myagent Python、frontend/package.json 和 java-backend/pom.xml"]
+    C["检查 18000、18080、19000、18081、18082 端口"]
     D["设置 PYTHONPATH=src 和 Windows Selector 事件循环"]
-    E["启动 Java ERP MCP"]
-    F["等待 18081/mcp 可访问"]
-    G["启动异步 Agent Protocol"]
-    H["等待 18082/ok 可访问"]
-    I["启动 FastAPI"]
-    J["等待 18000 可访问"]
-    K["npm run dev -- --host 127.0.0.1 --port 19000 --strictPort"]
-    L["等待 19000 可访问"]
-    M["浏览器访问 19000"]
+    E["启动 Java ERP 后端"]
+    F["等待 18080 可访问"]
+    G["启动 Java ERP MCP"]
+    H["等待 18081/mcp 可访问"]
+    I["启动异步 Agent Protocol"]
+    J["等待 18082/ok 可访问"]
+    K["启动 FastAPI"]
+    L["等待 18000 可访问"]
+    M["npm run dev -- --host 127.0.0.1 --port 19000 --strictPort"]
+    N["等待 19000 可访问"]
+    O["浏览器访问 19000"]
 
     P["独立准备 OpenSandbox 服务与客户端凭据"]
     P -.->|运行前提，非启动器步骤| A
 
-    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N --> O
 ```
 
-**启动顺序依赖关系：**启动器先准备 Java ERP MCP 和异步 Agent Protocol，再启动 FastAPI，最后启动前端。异步入口导入时即发现图表 MCP 工具；FastAPI 启动只初始化持久化资源和工厂，公共/订单 MCP 的发现推迟到首次构建用户 Agent。启动器的 HTTP 响应探测接受 HTTP 200—499（包括 MCP 普通 GET 可能返回的 406），只证明服务入口可响应，不证明真实业务、模型、数据库或沙箱调用成功。
+**启动顺序依赖关系：**启动器先启动 Java ERP 后端，再准备 Java ERP MCP 和异步 Agent Protocol，然后启动 FastAPI，最后启动前端。异步入口导入时即发现图表 MCP 工具；FastAPI 启动只初始化持久化资源和工厂，公共/订单 MCP 的发现推迟到首次构建用户 Agent。启动器的 HTTP 响应探测接受 HTTP 200—499（包括 MCP 普通 GET 可能返回的 406），只证明服务入口可响应，不证明真实业务、模型、数据库或沙箱调用成功。
 
 **运行环境与端口检查**
 
@@ -176,9 +181,10 @@ flowchart TD
 - `PYTHONPATH=src`：使后端可以直接导入 `api`、`agent` 等项目模块。
 - `PYTHONUTF8=1`、`PYTHONIOENCODING=utf-8`：统一 Windows 子进程日志编码。
 - `MYAGENT_ASYNC_AGENT_PROTOCOL_URL`：让主 Agent 和异步任务接口访问同一个 `18082` 服务。
+- `JAVA_API_BASE_URL`：让 Java ERP MCP 适配层访问同一个 `18080` Java REST API；显式配置时保留现有值。
 - `LOG_COLOR=false`：避免 Windows 日志转发依赖终端颜色支持。
 
-启动前会检查四个托管服务端口是否可以绑定。如果端口已被旧进程占用，启动器会直接报错，不会先启动新进程再误判旧服务已就绪。OpenSandbox 不在该端口检查和 HTTP 响应等待列表中；未配置密钥时四个服务仍可启动，但 Agent 执行会在首次请求沙箱时失败；配置密钥后，四个服务启动成功仍不等于已完成真实沙箱创建验证。
+启动前会检查五个托管服务端口是否可以绑定。如果端口已被旧进程占用，启动器会直接报错，不会先启动新进程再误判旧服务已就绪。OpenSandbox 不在该端口检查和 HTTP 响应等待列表中；未配置密钥时五个服务仍可启动，但 Agent 执行会在首次请求沙箱时失败；配置密钥后，五个服务启动成功仍不等于已完成真实沙箱创建验证。
 
 端口和主机可以通过环境变量覆盖，例如：
 
@@ -188,15 +194,15 @@ $env:MYAGENT_FRONTEND_PORT="4001"
 .\myagent\Scripts\python.exe .\start_web.py
 ```
 
-统一启动器主要监听配置包括：`MYAGENT_BACKEND_HOST`、`MYAGENT_BACKEND_PORT`、`MYAGENT_FRONTEND_HOST`、`MYAGENT_FRONTEND_PORT`、`MYAGENT_MCP_HOST`、`MYAGENT_MCP_PORT`、`MYAGENT_MCP_PATH`、`MYAGENT_ASYNC_AGENT_HOST` 和 `MYAGENT_ASYNC_AGENT_PORT`。
+统一启动器主要监听配置包括：`MYAGENT_BACKEND_HOST`、`MYAGENT_BACKEND_PORT`、`MYAGENT_FRONTEND_HOST`、`MYAGENT_FRONTEND_PORT`、`MYAGENT_JAVA_BACKEND_HOST`、`MYAGENT_JAVA_BACKEND_PORT`、`MYAGENT_JAVA_MAVEN_COMMAND`、`MYAGENT_MCP_HOST`、`MYAGENT_MCP_PORT`、`MYAGENT_MCP_PATH`、`MYAGENT_ASYNC_AGENT_HOST` 和 `MYAGENT_ASYNC_AGENT_PORT`。
 
 Vite 的 API 代理读取后端端口，但目标主机固定为 `127.0.0.1`；若后端只绑定其他主机地址，单独修改 `MYAGENT_BACKEND_HOST` 不会同步更改该代理。FastAPI 可直接服务 `frontend/dist/` 构建产物（包括 `/assets`），未构建时回退到 `src/api` 同级的旧静态目录；这与启动器始终启动 Vite 是两条使用路径。
 
 **停止服务**
 
-在启动器所在终端按 `Ctrl+C`。`start_web.py` 按逆序停止其拥有的 Vite、FastAPI、异步 Agent Protocol 和 Java ERP MCP 进程：Windows 使用 `taskkill /PID /T /F` 结束对应进程树；非 Windows 分支先 `terminate()`，等待仍未退出的直接子进程后再 `kill()`。Windows 强制终止不保证每个服务的优雅关闭钩子都能执行，1.3 描述的是正常应用生命周期清理。此操作不停止独立的 OpenSandbox 服务，也不主动销毁远端用户沙箱，具体生命周期见 3.7。
+在启动器所在终端按 `Ctrl+C`。`start_web.py` 按逆序停止其拥有的 Vite、FastAPI、异步 Agent Protocol、Java ERP MCP 和 Java ERP 后端进程：Windows 使用 `taskkill /PID /T /F` 结束对应进程树；非 Windows 分支先 `terminate()`，等待仍未退出的直接子进程后再 `kill()`。Windows 强制终止不保证每个服务的优雅关闭钩子都能执行，1.3 描述的是正常应用生命周期清理。此操作不停止独立的 OpenSandbox 服务，也不主动销毁远端用户沙箱，具体生命周期见 3.7。
 
-如果启动过程中某个服务未能通过 HTTP 响应探测，启动器会停止已经启动的子进程并退出。常见原因包括：端口被占用、Java ERP MCP 不可访问、异步 Agent Protocol 启动失败或前端依赖未安装。
+如果启动过程中某个服务未能通过 HTTP 响应探测，启动器会停止已经启动的子进程并退出。常见原因包括：端口被占用、Java 后端或 Java ERP MCP 不可访问、异步 Agent Protocol 启动失败、Maven/JDK 未安装或前端依赖未安装。
 
 **统一启动器与直接 Vite 的区别**
 
@@ -206,7 +212,8 @@ Vite 的 API 代理读取后端端口，但目标主机固定为 `127.0.0.1`；�
 
 - 后端使用项目已有的 `myagent` 虚拟环境；仓库根目录当前没有统一的 `requirements.txt`、`requirements-*.txt`、`pyproject.toml` 或其他 Python 安装清单，因此本文不虚构一条完整的依赖安装命令。
 - 前端依赖由 `frontend/package.json` 和 `frontend/package-lock.json` 描述。首次运行前可在 `frontend/` 目录执行 `npm install`，再使用统一启动器；可执行 `npm test` 运行 `frontend/tests/*.test.js` 的 Node 原生测试，并用 `npm run build` 验证构建。
-- 完整运行还需要 PostgreSQL、Java ERP MCP、异步 Agent Protocol、OpenSandbox 和模型服务，具体地址、密钥和模型配置以当前环境变量及根目录 `.env` 为准；OpenSandbox 客户端配置见 3.6。
+- Java 后端由 `java-backend/pom.xml` 描述，需要 JDK 17 或更高版本以及 Maven；可通过 `MYAGENT_JAVA_MAVEN_COMMAND` 指定 Maven 可执行文件。
+- 完整运行还需要 PostgreSQL、Java 后端依赖的 MySQL、异步 Agent Protocol、OpenSandbox 和模型服务，具体地址、密钥和模型配置以当前环境变量及根目录 `.env` 为准；OpenSandbox 客户端配置见 3.6。
 - Python 测试使用标准库 `unittest` 组织，可使用项目虚拟环境运行：
 
   ```powershell

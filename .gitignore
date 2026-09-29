@@ -26,6 +26,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Java / Maven 构建产物
+**/target/
+*.class
+*.jar
+*.war
+
 # 应用运行状态、临时文件和日志
 runtime/
 .langgraph_api/

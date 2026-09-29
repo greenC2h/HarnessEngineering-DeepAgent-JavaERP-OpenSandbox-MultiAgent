@@ -2,7 +2,7 @@
 
 本文面向第一次阅读本项目代码的开发者，解释当前最小可运行 ERP 采购 Agent 对话应用的模块职责、数据流和关键执行顺序。
 
-> 本文只覆盖 `C:\Users\25144\Desktop\MyAgent` 下的代码。`MotorcyclePartsProcurementSystem` 目录不属于本项目检查和说明范围。
+> 本文覆盖 `C:\Users\25144\Desktop\MyAgent` 下的代码，包括 `java-backend/`。原外部目录 `MotorcyclePartsProcurementSystem` 不属于本项目检查和说明范围。
 
 ## 1. 项目全景与核心边界
 
@@ -10,7 +10,8 @@
 
 | 层次       | 主要目录/文件   | 作用                                                         |
 | ---------- | --------------- | ------------------------------------------------------------ |
-| 启动层     | `start_web.py`  | 设置 Windows 异步环境，启动 Java ERP MCP、异步 Agent Protocol、FastAPI 和 Vite |
+| 启动层     | `start_web.py`  | 设置 Windows 异步环境，启动 Java ERP 后端、Java ERP MCP、异步 Agent Protocol、FastAPI 和 Vite |
+| Java 后端层 | `java-backend/` | 提供 Spring Boot 摩托车零部件采购 REST API，默认监听 `18080` |
 | Agent 层   | `src/agent/`    | 构建主 Agent、配置模型、MCP、长期记忆、技能和状态恢复        |
 | API 编排层 | `src/api/`      | 提供对话、SSE、会话历史和删除接口                            |
 | 资源服务层 | `src/services/` | 管理图表 HTML/历史图片 artifact 的暂存、有效期和资源路径     |
@@ -64,21 +65,23 @@ Store 只负责“侧边栏需要知道什么”，Checkpointer 负责“对话�
 ```mermaid
 flowchart TD
     A["运行 start_web.py"] --> B["确认 myagent Python 存在"]
-    B --> C["确认 frontend/package.json 存在"]
-    C --> D["检查后端 18000、MCP 18081、异步 Agent Protocol 18082 和前端 4000 端口"]
+    B --> C["确认 frontend/package.json 和 java-backend/pom.xml 存在"]
+    C --> D["检查后端 18000、Java 后端 18080、MCP 18081、异步 Agent Protocol 18082 和前端 19000 端口"]
     D --> E["设置 PYTHONPATH=src"]
     E --> F["设置 WindowsSelectorEventLoopPolicy"]
-    F --> G["启动 Java ERP MCP 适配层"]
-    G --> H["等待 MCP HTTP 可访问"]
-    H --> I["启动 LangGraph 异步 Agent Protocol"]
-    I --> J["等待异步 Agent Protocol /ok"]
-    J --> K["启动 FastAPI api.chat:app"]
-    K --> L["等待后端 HTTP 可访问"]
-    L --> M["启动 npm run dev -- --strictPort"]
-    M --> N["等待前端 HTTP 可访问"]
-    N --> O["浏览器访问 http://127.0.0.1:4000"]
-    O --> P["收到 Ctrl+C 或退出信号"]
-    P --> Q["按逆序停止所有子进程"]
+    F --> G["启动 Java ERP 后端"]
+    G --> H["等待 Java 后端 HTTP 可访问"]
+    H --> I["启动 Java ERP MCP 适配层"]
+    I --> J["等待 MCP HTTP 可访问"]
+    J --> K["启动 LangGraph 异步 Agent Protocol"]
+    K --> L["等待异步 Agent Protocol /ok"]
+    L --> M["启动 FastAPI api.chat:app"]
+    M --> N["等待后端 HTTP 可访问"]
+    N --> O["启动 npm run dev -- --strictPort"]
+    O --> P["等待前端 HTTP 可访问"]
+    P --> Q["浏览器访问 http://127.0.0.1:19000"]
+    Q --> R["收到 Ctrl+C 或退出信号"]
+    R --> S["按逆序停止所有子进程"]
 ```
 
 ### 3.1 为什么使用 `start_web.py`

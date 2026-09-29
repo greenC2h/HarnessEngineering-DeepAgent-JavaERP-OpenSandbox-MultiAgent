@@ -1,0 +1,22 @@
+server:
+  port: 18080
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  datasource:
+    # 当前 Java 初始化器使用的数据库是 motorparts_db。
+    url: jdbc:mysql://localhost:3306/motorparts_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+motorparts:
+  init:
+    enabled: true
+    insert-sample-data: true
