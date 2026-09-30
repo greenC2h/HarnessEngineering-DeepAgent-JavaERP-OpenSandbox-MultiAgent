@@ -15,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 MCP_SERVER_CONFIG_COMMON = {
     "bing-search": {
-        "url": "https://mcp.api-inference.modelscope.net/34ff8faf04f54b/mcp",
+        "url": (
+            "https://mcp.api-inference.modelscope.net/"
+            f"{os.getenv('MODELSCOPE_BING_SEARCH_MCP_TOKEN', '')}/mcp"
+        ),
         "transport": "streamable_http",
     }
 }
@@ -33,7 +36,10 @@ MCP_SERVER_CONFIG_ORDER = {
 
 MCP_SERVER_CONFIG_CHART = {
     "charts-mcp": {
-        "url": "https://mcp.api-inference.modelscope.net/4713be2f374346/mcp",
+        "url": (
+            "https://mcp.api-inference.modelscope.net/"
+            f"{os.getenv('MODELSCOPE_CHARTS_MCP_TOKEN', '')}/mcp"
+        ),
         "transport": "streamable_http",
     }
 }

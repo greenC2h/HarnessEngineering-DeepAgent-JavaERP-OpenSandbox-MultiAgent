@@ -110,6 +110,7 @@ Edit `.env` and provide values for the services in your environment, especially:
 
 - `MYAGENT_AUTH_MYSQL_PASSWORD`
 - `DEEPSEEK_API_KEY` and the model-service endpoint
+- `MODELSCOPE_BING_SEARCH_MCP_TOKEN` and `MODELSCOPE_CHARTS_MCP_TOKEN`
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`
 - `OPEN_SANDBOX_API_KEY` and the OpenSandbox connection settings
 

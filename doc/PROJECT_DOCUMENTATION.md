@@ -1399,6 +1399,8 @@ MCP 服务注册的全部工具不等于 Agent 实际可调用的全部工具：
 
 公共 MCP 配置为 `MCP_SERVER_CONFIG_COMMON`，当前使用名为 `bing-search` 的 Streamable HTTP 服务。发现到的公共工具作为 `common_tools` 直接注入主 Agent，可用于搜索等通用能力。
 
+公共搜索和图表 ModelScope MCP 的服务标识分别从 `MODELSCOPE_BING_SEARCH_MCP_TOKEN` 与 `MODELSCOPE_CHARTS_MCP_TOKEN` 读取，实际部署时应写入根目录 `.env`；代码不保存具体服务标识。
+
 公共工具不属于采购订单子 Agent 的工具列表；订单子 Agent 只使用 YAML 声明的 Java ERP 工具和 `request_additional_info`。
 
 **工具分配边界**
